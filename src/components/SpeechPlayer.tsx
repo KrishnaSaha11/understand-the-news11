@@ -170,7 +170,7 @@ export default function SpeechPlayer({ text, onLanguageChange, currentLanguage =
                     </button>
 
                     {showLangMenu && (
-                        <div className="absolute bottom-full mb-2 left-0 z-50 w-32 rounded-2xl bg-white p-2 shadow-2xl border glass animate-fade-in-up">
+                        <div className="absolute bottom-full mb-2 left-0 z-50 w-32 rounded-2xl bg-card p-2 shadow-2xl border border-border glass animate-fade-in-up">
                             {LANGUAGES.map((lang) => (
                                 <button
                                     key={lang.value}
@@ -179,7 +179,7 @@ export default function SpeechPlayer({ text, onLanguageChange, currentLanguage =
                                         setShowLangMenu(false);
                                         stop();
                                     }}
-                                    className={`w-full rounded-lg px-3 py-2 text-left text-xs font-bold transition-all hover:bg-blue-50 hover:text-blue-600 ${currentLanguage === lang.value ? 'bg-blue-50 text-blue-600' : ''
+                                    className={`w-full rounded-lg px-3 py-2 text-left text-xs font-bold transition-all hover:bg-primary/10 hover:text-primary ${currentLanguage === lang.value ? 'bg-primary/10 text-primary' : 'text-foreground'
                                         }`}
                                 >
                                     {lang.label}
@@ -189,13 +189,13 @@ export default function SpeechPlayer({ text, onLanguageChange, currentLanguage =
                     )}
                 </div>
 
-                <div className="flex items-center space-x-2 rounded-2xl bg-secondary/30 p-1 backdrop-blur-sm border border-secondary shadow-sm">
+                <div className="flex items-center space-x-2 rounded-full bg-secondary/30 p-1 backdrop-blur-sm border border-border shadow-sm">
                     {!isSpeaking && !isPaused ? (
                         <button
                             onClick={speak}
-                            className="shimmer-btn flex items-center space-x-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-black text-white transition-all hover:scale-105 shadow-lg shadow-blue-200"
+                            className="flex items-center space-x-2 rounded-full bg-[#2563EB] px-5 py-2 text-sm font-semibold text-white transition-all hover:scale-105 shadow-lg"
                         >
-                            <Volume2 className="h-4 w-4" />
+                            <Volume2 className="h-4 w-4 text-white" />
                             <span>Listen</span>
                         </button>
                     ) : (
@@ -203,17 +203,17 @@ export default function SpeechPlayer({ text, onLanguageChange, currentLanguage =
                             {isSpeaking ? (
                                 <button
                                     onClick={pause}
-                                    className="flex items-center space-x-2 rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-white transition-all hover:scale-105"
+                                    className="flex items-center space-x-2 rounded-full bg-[#F59E0B] px-5 py-2 text-sm font-semibold text-black transition-all hover:scale-105"
                                 >
-                                    <Pause className="h-4 w-4" />
+                                    <Pause className="h-4 w-4 text-black" />
                                     <span>Pause</span>
                                 </button>
                             ) : (
                                 <button
                                     onClick={speak}
-                                    className="flex items-center space-x-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-black text-white transition-all hover:scale-105"
+                                    className="flex items-center space-x-2 rounded-full bg-[#2563EB] px-5 py-2 text-sm font-semibold text-white transition-all hover:scale-105"
                                 >
-                                    <Play className="h-4 w-4" />
+                                    <Play className="h-4 w-4 text-white" />
                                     <span>Resume</span>
                                 </button>
                             )}

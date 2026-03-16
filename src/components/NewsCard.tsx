@@ -22,35 +22,34 @@ export default function NewsCard({ article, onAnalyze }: NewsCardProps) {
         <div
             ref={cardRef}
             onMouseMove={handleMouseMove}
-            className="group spotlight-card relative flex flex-col space-y-3 overflow-hidden rounded-3xl border-2 bg-card p-4 transition-all hover:shadow-2xl hover:-translate-y-1"
+            className="group relative flex flex-col space-y-3 overflow-hidden rounded-[16px] border border-border bg-card p-4 sm:p-5 transition-all hover:border-primary hover:shadow-[0_0_0_1px_var(--color-primary)]"
         >
             {article.urlToImage && (
-                <div className="relative aspect-video w-full overflow-hidden rounded-2xl">
+                <div className="relative aspect-video w-full overflow-hidden rounded-xl">
                     <img
                         src={article.urlToImage}
                         alt={article.title}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                 </div>
             )}
             <div className="flex flex-1 flex-col justify-between relative z-10">
                 <div className="space-y-3">
-                    <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest text-muted-foreground/60">
+                    <div className="flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground">
                         <span>{article.source.name}</span>
                         <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
                     </div>
-                    <h3 className="line-clamp-2 text-xl font-black leading-tight group-hover:text-blue-600 transition-colors">
+                    <h3 className="line-clamp-2 text-lg sm:text-xl font-bold leading-tight text-foreground transition-colors">
                         {article.title}
                     </h3>
-                    <p className="line-clamp-3 text-sm font-bold text-muted-foreground/80 leading-relaxed">
+                    <p className="line-clamp-3 text-xs sm:text-sm font-medium text-muted-foreground leading-relaxed">
                         {article.description}
                     </p>
                 </div>
-                <div className="mt-6">
+                <div className="mt-4 sm:mt-6">
                     <button
                         onClick={() => onAnalyze(article)}
-                        className="shimmer-btn w-full rounded-2xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-blue-200"
+                        className="w-full rounded-full bg-[#F59E0B] px-4 py-2 text-sm font-semibold text-[#000000] transition-all hover:bg-[#D97706] active:scale-95 shadow-lg"
                     >
                         🧠 Understand in 30 Seconds
                     </button>

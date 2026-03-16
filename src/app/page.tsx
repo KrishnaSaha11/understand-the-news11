@@ -10,6 +10,7 @@ import { auth } from '@/lib/firebase';
 import { useSearchParams } from 'next/navigation';
 import { QuizQuestion, QuizDifficulty } from '@/services/ai';
 import SpeechPlayer from '@/components/SpeechPlayer';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -304,94 +305,82 @@ function HomeContent() {
     : 0;
 
   return (
-    <div className="container mx-auto px-4 py-12 space-y-12">
+    <div className="container mx-auto px-4 py-8 sm:py-12 space-y-8 sm:space-y-12">
       {/* Stats Dashboard */}
       {user && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
-          <div className="relative overflow-hidden group rounded-3xl bg-blue-600 p-6 text-white shadow-xl transition-all hover:scale-[1.02] active:scale-95">
-            <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 animate-fade-in">
+          <div className="relative overflow-hidden group rounded-[16px] bg-[#1D4ED8] p-4 sm:p-6 text-[#FFFFFF] shadow-[0_4px_24px_rgba(0,0,0,0.4)] transition-all hover:scale-[1.02] active:scale-95">
+            <div className="relative z-10 flex flex-col justify-between h-full space-y-2 sm:space-y-4">
               <div className="flex items-center justify-between">
-                <div className="bg-white/20 p-2 rounded-xl">
-                  <Brain className="h-6 w-6" />
+                <div className="bg-white/20 p-1.5 sm:p-2 rounded-lg">
+                  <Brain className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <span className="text-xs font-black uppercase tracking-widest opacity-80">Reading Progress</span>
+                <span className="text-xs font-black uppercase tracking-widest text-white/80">Explained</span>
               </div>
               <div>
-                <div className="text-4xl font-black">{stats.totalRead}</div>
-                <div className="text-sm font-bold opacity-80">Stories Explained</div>
+                <div className="text-2xl sm:text-4xl font-black text-white">{stats.totalRead}</div>
+                <div className="text-xs sm:text-sm font-bold text-white/80">Stories</div>
               </div>
-            </div>
-            <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Brain className="h-24 w-24" />
             </div>
           </div>
 
-          <div className="relative overflow-hidden group rounded-3xl bg-orange-500 p-6 text-white shadow-xl transition-all hover:scale-[1.02] active:scale-95">
-            <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
+          <div className="relative overflow-hidden group rounded-[16px] bg-[#EA580C] p-4 sm:p-6 text-[#FFFFFF] shadow-[0_4px_24px_rgba(0,0,0,0.4)] transition-all hover:scale-[1.02] active:scale-95">
+            <div className="relative z-10 flex flex-col justify-between h-full space-y-2 sm:space-y-4">
               <div className="flex items-center justify-between">
-                <div className="bg-white/20 p-2 rounded-xl">
-                  <Zap className="h-6 w-6" />
+                <div className="bg-white/20 p-1.5 sm:p-2 rounded-lg">
+                  <Zap className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <span className="text-xs font-black uppercase tracking-widest opacity-80">Current Streak</span>
+                <span className="text-xs font-black uppercase tracking-widest text-white/80">Streak</span>
               </div>
               <div>
-                <div className="text-4xl font-black">{stats.streak} Days</div>
-                <div className="text-sm font-bold opacity-80">Active Learning</div>
+                <div className="text-2xl sm:text-4xl font-black text-white">{stats.streak}</div>
+                <div className="text-xs sm:text-sm font-bold text-white/80">Days</div>
               </div>
-            </div>
-            <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Zap className="h-24 w-24" />
             </div>
           </div>
 
-          <div className="relative overflow-hidden group rounded-3xl bg-emerald-500 p-6 text-white shadow-xl transition-all hover:scale-[1.02] active:scale-95">
-            <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
+          <div className="relative overflow-hidden group rounded-[16px] bg-[#059669] p-4 sm:p-6 text-[#FFFFFF] shadow-[0_4px_24px_rgba(0,0,0,0.4)] transition-all hover:scale-[1.02] active:scale-95">
+            <div className="relative z-10 flex flex-col justify-between h-full space-y-2 sm:space-y-4">
               <div className="flex items-center justify-between">
-                <div className="bg-white/20 p-2 rounded-xl">
-                  <Target className="h-6 w-6" />
+                <div className="bg-white/20 p-1.5 sm:p-2 rounded-lg">
+                  <Target className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <span className="text-xs font-black uppercase tracking-widest opacity-80">Quiz Mastery</span>
+                <span className="text-xs font-black uppercase tracking-widest text-white/80">Mastery</span>
               </div>
               <div>
-                <div className="text-4xl font-black">{accuracy}%</div>
-                <div className="text-sm font-bold opacity-80">Average Accuracy</div>
+                <div className="text-2xl sm:text-4xl font-black text-white">{accuracy}%</div>
+                <div className="text-xs sm:text-sm font-bold text-white/80">Accuracy</div>
               </div>
-            </div>
-            <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Target className="h-24 w-24" />
             </div>
           </div>
 
-          <div className="relative overflow-hidden group rounded-3xl bg-purple-600 p-6 text-white shadow-xl transition-all hover:scale-[1.02] active:scale-95">
-            <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
+          <div className="relative overflow-hidden group rounded-[16px] bg-[#7C3AED] p-4 sm:p-6 text-[#FFFFFF] shadow-[0_4px_24px_rgba(0,0,0,0.4)] transition-all hover:scale-[1.02] active:scale-95">
+            <div className="relative z-10 flex flex-col justify-between h-full space-y-2 sm:space-y-4">
               <div className="flex items-center justify-between">
-                <div className="bg-white/20 p-2 rounded-xl">
-                  <Trophy className="h-6 w-6" />
+                <div className="bg-white/20 p-1.5 sm:p-2 rounded-lg">
+                  <Trophy className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <span className="text-xs font-black uppercase tracking-widest opacity-80">Knowledge Points</span>
+                <span className="text-xs font-black uppercase tracking-widest text-white/80">Points</span>
               </div>
               <div>
-                <div className="text-4xl font-black">{stats.knowledgePoints}</div>
-                <div className="text-sm font-bold opacity-80">Total Earned</div>
+                <div className="text-2xl sm:text-4xl font-black text-white">{stats.knowledgePoints}</div>
+                <div className="text-xs sm:text-sm font-bold text-white/80">Knowledge</div>
               </div>
-            </div>
-            <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Trophy className="h-24 w-24" />
             </div>
           </div>
         </div>
       )}      {/* Hero Section with Level Selector */}
-      <div className="text-center space-y-8 animate-fade-in">
-        <div className="space-y-4">
-          <h1 className="text-5xl font-black tracking-tight sm:text-7xl">
-            Choose Your <span className="text-blue-600 animate-pulse">Teacher</span>
+      <div className="text-center space-y-6 sm:space-y-8 animate-fade-in">
+        <div className="space-y-3 sm:space-y-4">
+          <h1 className="text-4xl font-black tracking-tight sm:text-7xl">
+            Choose Your <span className="text-primary animate-pulse">Teacher</span>
           </h1>
-          <p className="mx-auto max-w-2xl text-xl font-bold text-foreground/60">
+          <p className="mx-auto max-w-2xl text-base sm:text-xl font-bold text-foreground/60 px-4">
             Tell us how you want to learn today. We'll adjust the lessons to match your level perfectly.
           </p>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 px-4 w-full">
           {[
             { id: 'child', label: '👶 Simple', desc: 'ELI5 Mode' },
             { id: 'teenager', label: '🧑 Relatable', desc: 'Default Mode' },
@@ -400,15 +389,15 @@ function HomeContent() {
             <button
               key={lvl.id}
               onClick={() => setLevel(lvl.id as any)}
-              className={`group flex flex-col items-center space-y-1 rounded-2xl border-4 p-4 transition-all hover:scale-105 active:scale-95 sm:px-8 ${mounted && level === lvl.id
-                ? 'border-blue-600 bg-blue-50/50'
-                : 'border-secondary bg-card hover:border-blue-200'
+              className={`group flex flex-col items-center space-y-1 rounded-2xl border-4 p-4 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto sm:px-8 ${mounted && level === lvl.id
+                ? 'border-primary bg-primary/5'
+                : 'border-secondary bg-card hover:border-primary/20'
                 }`}
             >
-              <span className={`text-xl font-black transition-colors ${level === lvl.id ? 'text-blue-600' : ''}`}>
+              <span className={`text-xl font-bold transition-colors ${level === lvl.id ? 'text-primary' : ''}`}>
                 {lvl.label}
               </span>
-              <span className="text-xs font-bold uppercase tracking-widest text-foreground/40">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#6B7280]">
                 {lvl.desc}
               </span>
             </button>
@@ -417,41 +406,41 @@ function HomeContent() {
       </div>
 
       {/* Topic Cloud / Discover Section */}
-      <div className="space-y-4">
+      <div className="space-y-4 px-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-black uppercase tracking-widest text-foreground/40">Discover Trending Niches</h2>
+          <h2 className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-foreground/40">Discover Trending Niches</h2>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           {trendingTopics.map((topic) => (
-            <a
+            <Link
               key={topic.id}
               href={`/?q=${encodeURIComponent(topic.label)}`}
-              className="flex items-center space-x-2 rounded-2xl bg-secondary/30 px-5 py-2.5 text-sm font-bold transition-all hover:bg-blue-600 hover:text-white hover:scale-105 active:scale-95"
+              className="flex items-center space-x-2 rounded-xl sm:rounded-2xl bg-secondary/50 px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all hover:bg-primary hover:text-white hover:scale-105 active:scale-95"
             >
               <span>{topic.icon}</span>
               <span>{topic.label}</span>
-            </a>
+            </Link>
           ))}
         </div>
       </div>
 
-      <div className="mb-8 flex items-center justify-between border-b pb-4">
-        <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
+      <div className="mb-4 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 gap-4 px-4">
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight flex flex-wrap items-center gap-2 sm:gap-3">
           {query ? (
             <>
               <span className="text-foreground/40 font-bold">Search results for:</span>
-              <span className="text-blue-600">{query}</span>
+              <span className="text-primary">{query}</span>
             </>
           ) : (
-            <>Today's Top Stories <span className="text-blue-600 capitalize">{category}</span></>
+            <>Today's Top Stories <span className="text-primary capitalize">{category}</span></>
           )}
         </h1>
-        <div className="text-sm font-black text-foreground/40 px-3 py-1 bg-secondary/50 rounded-lg">
+        <div className="text-xs sm:text-sm font-black text-foreground/40 px-3 py-1 bg-secondary/50 rounded-lg self-start sm:self-auto">
           {articles.length} {articles.length === 1 ? 'Article' : 'Articles'} found
         </div>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 px-4">
         {articles.map((article, index) => (
           <NewsCard
             key={index}
@@ -479,9 +468,9 @@ function HomeContent() {
                 {mounted && user && analysisResult && !analysisLoading && (
                   <button
                     onClick={handleSave}
-                    className={`shimmer-btn flex items-center space-x-2 rounded-xl px-4 py-2 text-sm font-black transition-all ${isSaved
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-secondary text-foreground hover:bg-secondary/80'
+                    className={`flex items-center space-x-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all border ${isSaved
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'border-[#374151] text-[#9CA3AF] bg-transparent hover:border-[#F59E0B] hover:text-[#F59E0B]'
                       }`}
                   >
                     {isSaved ? (
@@ -508,35 +497,46 @@ function HomeContent() {
 
             <div className="flex-1 overflow-y-auto">
               <div className="flex flex-col lg:flex-row min-h-full">
-                {/* Table of Contents - Sidebar on Large Screens, Menu on Small */}
-                <div className="lg:sticky lg:top-0 lg:h-[calc(92vh-73px)] lg:w-72 border-b lg:border-b-0 lg:border-r bg-secondary/30 p-6 overflow-y-auto hidden md:block">
+                {/* Table of Contents - Sidebar on Large Screens */}
+                <div className="lg:sticky lg:top-0 lg:h-[calc(92vh-73px)] lg:w-72 border-b lg:border-b-0 lg:border-r border-border bg-card p-6 overflow-y-auto hidden md:block transition-colors duration-300">
                   <div className="mb-6">
-                    <h4 className="text-xs font-black uppercase tracking-widest text-foreground/40 mb-4">Jump to Section</h4>
+                    <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">Jump to Section</h4>
                     <nav className="space-y-1">
-                      <a href="#hook" className="toc-link">🎬 Hook</a>
-                      <a href="#what" className="toc-link">🧠 What Happened</a>
-                      <a href="#why-happened" className="toc-link">⚡ Why It Happened</a>
-                      <a href="#matters" className="toc-link">🌍 Why It Matters</a>
-                      <a href="#simple" className="toc-link">🧒 Simple Explanation</a>
-                      <a href="#quiz" className="toc-link">🧠 Quick Quiz</a>
+                      {[
+                        { id: 'hook', label: '🎬 Hook' },
+                        { id: 'what', label: '🧠 What Happened' },
+                        { id: 'why-happened', label: '⚡ Why It Happened' },
+                        { id: 'matters', label: '🌍 Why It Matters' },
+                        { id: 'simple', label: '🧒 Simple Explanation' },
+                        { id: 'quiz', label: '🧠 Quick Quiz' },
+                      ].map((item) => (
+                        <a
+                          key={item.id}
+                          href={`#${item.id}`}
+                          className="group flex items-center px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-primary transition-all relative"
+                        >
+                          <span className="absolute left-0 w-1 h-0 bg-primary transition-all duration-200 group-hover:h-full group-hover:opacity-100" />
+                          {item.label}
+                        </a>
+                      ))}
                     </nav>
                   </div>
 
-                  <div className="rounded-2xl bg-blue-600 p-4 text-white shadow-lg mt-auto">
-                    <p className="text-xs font-black uppercase mb-1">Teacher's Tip</p>
-                    <p className="text-sm font-medium opacity-90">Take your time reading! This is a detailed look at the story.</p>
+                  <div className="rounded-[16px] bg-[#1E3A5F] border-l-4 border-[#3B82F6] p-4 text-[#BFDBFE] shadow-lg mt-auto">
+                    <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[#60A5FA] mb-1">TEACHER'S TIP</p>
+                    <p className="text-sm font-medium">Take your time reading! This is a detailed look at the story.</p>
                   </div>
                 </div>
 
-                <div className="flex-1 p-6 sm:p-10 max-w-4xl mx-auto lg:mx-0">
-                  <div className="mb-10 space-y-4 animate-fade-in-up">
-                    <span className="inline-block rounded-full bg-blue-600/10 px-4 py-1 text-xs font-black uppercase tracking-widest text-blue-600">
+                <div className="flex-1 p-4 sm:p-10 max-w-4xl mx-auto lg:mx-0 w-full">
+                  <div className="mb-8 sm:mb-10 space-y-3 sm:space-y-4 animate-fade-in-up">
+                    <span className="inline-block rounded-full bg-primary/10 px-4 py-1 text-xs font-black uppercase tracking-widest text-primary">
                       Friendly Teacher Mode
                     </span>
-                    <h2 className="text-3xl font-black text-foreground sm:text-5xl leading-tight">
+                    <h2 className="text-2xl font-black text-foreground sm:text-5xl leading-tight">
                       {selectedArticle.title}
                     </h2>
-                    <div className="flex items-center space-x-4 text-sm font-bold text-foreground/60">
+                    <div className="flex items-center space-x-3 sm:space-x-4 text-xs sm:text-sm font-bold text-foreground/60">
                       <span>{selectedArticle.source.name}</span>
                       <span className="h-1 w-1 rounded-full bg-foreground/30" />
                       <span>{new Date(selectedArticle.publishedAt).toLocaleDateString()}</span>
@@ -553,28 +553,28 @@ function HomeContent() {
                   </div>
 
                   {analysisLoading ? (
-                    <div className="flex flex-col items-center justify-center space-y-6 py-32">
+                    <div className="flex flex-col items-center justify-center space-y-6 py-20 sm:py-32">
                       <div className="relative">
-                        <Loader2 className="h-16 w-16 animate-spin text-blue-600" />
+                        <Loader2 className="h-12 w-12 sm:h-16 sm:w-16 animate-spin text-primary" />
                       </div>
                       <div className="text-center space-y-2">
-                        <p className="animate-pulse text-2xl font-black text-foreground">
+                        <p className="animate-pulse text-xl sm:text-2xl font-black text-foreground">
                           Generating lesson<span className="animate-[ping_1.5s_infinite] inline-block">.</span><span className="animate-[ping_1.5s_infinite_200ms] inline-block">.</span><span className="animate-[ping_1.5s_infinite_400ms] inline-block">.</span>
                         </p>
-                        <p className="text-foreground/50 font-medium italic">Our AI is crafting a simple, high-impact explanation just for you.</p>
+                        <p className="text-foreground/50 text-sm sm:text-base font-medium italic">Our AI is crafting a simple, high-impact explanation just for you.</p>
                       </div>
                     </div>
                   ) : analysisResult ? (
-                    <div className="space-y-12 pb-10">
-                      <div className="grid gap-8">
+                    <div className="space-y-8 sm:space-y-12 pb-10">
+                      <div className="grid gap-6 sm:gap-8">
                         {/* Hook */}
                         <section id="hook" className="reading-section animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
-                          <div className="rounded-2xl border-2 border-purple-200 bg-purple-50 p-8 shadow-sm">
+                          <div className="rounded-2xl border-l-[4px] border-[#818CF8] bg-[#EEF2FF] dark:bg-[#1E1B4B] p-6 sm:p-8 shadow-sm">
                             <div className="flex items-center space-x-3 mb-4">
-                              <span className="text-2xl">🎬</span>
-                              <h3 className="text-lg font-black text-purple-800 uppercase tracking-tight">1. The Hook</h3>
+                              <span className="text-xl sm:text-2xl">🎬</span>
+                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#A5B4FC] uppercase tracking-tight">1. The Hook</h3>
                             </div>
-                            <div className="text-xl font-bold text-purple-950 opacity-90 leading-relaxed">
+                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#A5B4FC] opacity-90 leading-relaxed">
                               <p>{analysisResult.hook}</p>
                             </div>
                           </div>
@@ -582,12 +582,12 @@ function HomeContent() {
 
                         {/* What Happened */}
                         <section id="what" className="reading-section animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                          <div className="rounded-2xl border-2 border-orange-200 bg-orange-50 p-8 shadow-sm">
+                          <div className="rounded-2xl border-l-[4px] border-[#22C55E] bg-[#F0FDF4] dark:bg-[#1C2B1A] p-6 sm:p-8 shadow-sm">
                             <div className="flex items-center space-x-3 mb-4">
-                              <span className="text-2xl">🧠</span>
-                              <h3 className="text-lg font-black text-orange-800 uppercase tracking-tight">2. What Happened</h3>
+                              <span className="text-xl sm:text-2xl">🧠</span>
+                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#86EFAC] uppercase tracking-tight">2. What Happened</h3>
                             </div>
-                            <div className="text-xl font-bold text-orange-950 opacity-90 leading-relaxed">
+                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#86EFAC] opacity-90 leading-relaxed">
                               <p>{analysisResult.what_happened}</p>
                             </div>
                           </div>
@@ -595,12 +595,12 @@ function HomeContent() {
 
                         {/* Why It Happened */}
                         <section id="why-happened" className="reading-section animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                          <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-8 shadow-sm">
+                          <div className="rounded-2xl border-l-[4px] border-[#C4B5FD] bg-[#F5F3FF] dark:bg-[#1C1A2B] p-6 sm:p-8 shadow-sm">
                             <div className="flex items-center space-x-3 mb-4">
-                              <span className="text-2xl">⚡</span>
-                              <h3 className="text-lg font-black text-blue-800 uppercase tracking-tight">3. Why It Happened</h3>
+                              <span className="text-xl sm:text-2xl">⚡</span>
+                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#C4B5FD] uppercase tracking-tight">3. Why It Happened</h3>
                             </div>
-                            <div className="text-xl font-bold text-blue-950 opacity-90 leading-relaxed">
+                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#C4B5FD] opacity-90 leading-relaxed">
                               <p>{analysisResult.why_it_happened}</p>
                             </div>
                           </div>
@@ -608,12 +608,12 @@ function HomeContent() {
 
                         {/* Why It Matters */}
                         <section id="matters" className="reading-section animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                          <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-8 shadow-sm">
+                          <div className="rounded-2xl border-l-[4px] border-[#6EE7B7] bg-[#ECFDF5] dark:bg-[#1A2B1A] p-6 sm:p-8 shadow-sm">
                             <div className="flex items-center space-x-3 mb-4">
-                              <span className="text-2xl">🌍</span>
-                              <h3 className="text-lg font-black text-emerald-800 uppercase tracking-tight">4. Why It Matters</h3>
+                              <span className="text-xl sm:text-2xl">🌍</span>
+                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#6EE7B7] uppercase tracking-tight">4. Why It Matters</h3>
                             </div>
-                            <div className="text-xl font-bold text-emerald-950 opacity-90 leading-relaxed">
+                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#6EE7B7] opacity-90 leading-relaxed">
                               <p>{analysisResult.why_it_matters}</p>
                             </div>
                           </div>
@@ -621,12 +621,12 @@ function HomeContent() {
 
                         {/* Simple Explanation */}
                         <section id="simple" className="reading-section animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
-                          <div className="rounded-2xl border-2 border-pink-200 bg-pink-50 p-8 shadow-sm">
+                          <div className="rounded-2xl border-l-[4px] border-[#FCA5A5] bg-[#FEF2F2] dark:bg-[#2B1A1A] p-6 sm:p-8 shadow-sm">
                             <div className="flex items-center space-x-3 mb-4">
-                              <span className="text-2xl">🧒</span>
-                              <h3 className="text-lg font-black text-pink-800 uppercase tracking-tight">5. Simple Explanation</h3>
+                              <span className="text-xl sm:text-2xl">🧒</span>
+                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#FCA5A5] uppercase tracking-tight">5. Simple Explanation</h3>
                             </div>
-                            <div className="text-xl font-bold text-pink-950 opacity-90 leading-relaxed">
+                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#FCA5A5] opacity-90 leading-relaxed">
                               <p>{analysisResult.simple_explanation}</p>
                             </div>
                           </div>
@@ -634,23 +634,23 @@ function HomeContent() {
 
                         {/* Integrated Quiz */}
                         <section id="quiz" className="reading-section animate-fade-in-up pt-8 border-t" style={{ animationDelay: '0.4s' }}>
-                          <div className="rounded-3xl border-4 border-blue-600 bg-card p-8 shadow-xl">
+                          <div className="rounded-3xl border-l-[4px] border-[#93C5FD] bg-[#EFF6FF] dark:bg-[#1A1F2B] p-6 sm:p-8 shadow-xl">
                             <div className="flex items-center space-x-3 mb-6">
-                              <span className="text-2xl">🧠</span>
-                              <h3 className="text-xl font-black text-blue-600 uppercase tracking-tight">Quick Quiz</h3>
+                              <span className="text-xl sm:text-2xl">🧠</span>
+                              <h3 className="text-lg sm:text-xl font-black text-[#1E293B] dark:text-[#93C5FD] uppercase tracking-tight">Quick Quiz</h3>
                             </div>
 
-                            <div className="space-y-6">
-                              <h4 className="text-2xl font-black leading-tight">
+                            <div className="space-y-4 sm:space-y-6">
+                              <h4 className="text-xl sm:text-2xl font-black leading-tight">
                                 {analysisResult.quick_quiz.question}
                               </h4>
 
-                              <div className="grid gap-3">
+                              <div className="grid gap-2 sm:gap-3">
                                 {analysisResult.quick_quiz.options.map((option, idx) => {
                                   const isSelected = selectedOption === idx;
                                   const isCorrectOption = idx === analysisResult.quick_quiz.correctIndex;
 
-                                  let appearance = "border-secondary bg-background hover:border-blue-200";
+                                  let appearance = "border-secondary bg-background hover:border-primary/20";
                                   if (selectedOption !== null) {
                                     if (isCorrectOption) appearance = "border-emerald-500 bg-emerald-50 text-emerald-900";
                                     else if (isSelected) appearance = "border-red-500 bg-red-50 text-red-900";
@@ -662,7 +662,7 @@ function HomeContent() {
                                       key={idx}
                                       disabled={selectedOption !== null}
                                       onClick={() => handleAnswer(idx)}
-                                      className={`flex items-center justify-between rounded-2xl border-4 p-5 text-left font-bold transition-all ${appearance}`}
+                                      className={`flex items-center justify-between rounded-xl sm:rounded-2xl border-2 sm:border-4 p-4 sm:p-5 text-left font-bold transition-all text-sm sm:text-base ${appearance}`}
                                     >
                                       <span>{option}</span>
                                       {selectedOption !== null && isCorrectOption && <CheckCircle2 className="h-5 w-5 text-emerald-600 flex-shrink-0" />}
@@ -673,16 +673,15 @@ function HomeContent() {
                               </div>
 
                               {selectedOption !== null && (
-                                <div className="mt-10 pt-10 border-t border-blue-100 animate-fade-in">
-                                  <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-xl font-black text-foreground uppercase tracking-tight flex items-center gap-2">
-                                      <Brain className="h-6 w-6 text-blue-600" />
+                                <div className="mt-8 sm:mt-10 pt-8 sm:pt-10 border-t border-primary/10 animate-fade-in">
+                                  <div className="flex items-center justify-between mb-4 sm:mb-6">
+                                    <h3 className="text-lg sm:text-xl font-black text-foreground uppercase tracking-tight flex items-center gap-2">
+                                      <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                                       Continue Learning
                                     </h3>
-                                    <span className="text-xs font-black text-foreground/40 uppercase tracking-widest">Recommended for you</span>
                                   </div>
 
-                                  <div className="grid gap-4 sm:grid-cols-3">
+                                  <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3">
                                     {articles
                                       .filter(a => a.url !== selectedArticle.url && !stats.articlesCompleted.includes(a.url))
                                       .slice(0, 3)
@@ -690,14 +689,14 @@ function HomeContent() {
                                         <button
                                           key={idx}
                                           onClick={() => handleAnalyze(recArticle)}
-                                          className="group flex flex-col items-center space-y-2 rounded-2xl border-2 border-secondary bg-background p-3 text-left transition-all hover:border-blue-200 hover:shadow-lg"
+                                          className="group flex flex-col items-center space-y-2 rounded-xl sm:rounded-2xl border-2 border-secondary bg-background p-2 sm:p-3 text-left transition-all hover:border-primary/20 hover:shadow-lg"
                                         >
                                           {recArticle.urlToImage && (
-                                            <div className="aspect-video w-full overflow-hidden rounded-xl">
+                                            <div className="aspect-video w-full overflow-hidden rounded-lg sm:rounded-xl">
                                               <img src={recArticle.urlToImage} alt="" className="h-full w-full object-cover grayscale group-hover:grayscale-0 transition-all" />
                                             </div>
                                           )}
-                                          <h4 className="line-clamp-2 text-xs font-black leading-tight group-hover:text-blue-600 transition-colors">
+                                          <h4 className="line-clamp-2 text-[10px] sm:text-xs font-black leading-tight group-hover:text-primary transition-colors">
                                             {recArticle.title}
                                           </h4>
                                         </button>
@@ -711,28 +710,28 @@ function HomeContent() {
                       </div>
                     </div>
                   ) : (
-                    <div className="py-20 text-center rounded-2xl border-2 border-red-600 bg-red-600/10 p-10 animate-fade-in-up">
-                      <p className="text-3xl font-black text-red-600 uppercase mb-4">Error</p>
-                      <p className="text-foreground mt-2 text-xl font-bold">Failed to generate explanation. Please try again.</p>
+                    <div className="py-10 sm:py-20 text-center rounded-2xl border-2 border-red-600 bg-red-600/10 p-6 sm:p-10 animate-fade-in-up">
+                      <p className="text-2xl sm:text-3xl font-black text-red-600 uppercase mb-4">Error</p>
+                      <p className="text-foreground mt-2 text-lg sm:text-xl font-bold">Failed to generate explanation. Please try again.</p>
                       <button
                         onClick={() => handleAnalyze(selectedArticle)}
-                        className="mt-8 rounded-xl bg-red-600 px-8 py-3 font-black text-white transition-all hover:bg-red-700 shadow-xl"
+                        className="mt-6 sm:mt-8 rounded-xl bg-red-600 px-6 sm:px-8 py-3 font-black text-white transition-all hover:bg-red-700 shadow-xl"
                       >
                         Try Again
                       </button>
                     </div>
                   )}
 
-                  <div className="mt-12 flex flex-col items-center gap-4 border-t border-foreground/10 pt-10 pb-5">
+                  <div className="mt-8 sm:mt-12 flex flex-col items-center gap-4 border-t border-foreground/10 pt-8 sm:pt-10 pb-5">
                     <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
                       <a
                         href={selectedArticle.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group flex items-center justify-center space-x-3 rounded-2xl bg-foreground px-8 py-5 font-black text-background transition-all hover:scale-105 shadow-2xl"
+                        className="group flex items-center justify-center space-x-3 rounded-xl sm:rounded-2xl bg-foreground px-6 sm:px-8 py-4 sm:py-5 font-black text-background transition-all hover:scale-105 shadow-2xl text-sm sm:text-base"
                       >
                         <span>Read Full Original Article</span>
-                        <ArrowLeft className="h-5 w-5 rotate-180 transition-transform group-hover:translate-x-1" />
+                        <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 rotate-180 transition-transform group-hover:translate-x-1" />
                       </a>
                     </div>
                   </div>
@@ -742,7 +741,7 @@ function HomeContent() {
           </div>
         </div>
       )}
-      {/* Toast Notification */}      {/* Toast Notification */}
+      {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] animate-fade-in-up">
           <div className="flex items-center space-x-2 rounded-full bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-xl">
