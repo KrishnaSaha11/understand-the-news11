@@ -13,8 +13,9 @@ async function verifyToken(req: NextRequest): Promise<string | null> {
     }
 }
 
-export async function GET(req: NextRequest) {
-    const uid = await verifyToken(req);
+export async function GET(req: Request) {
+    console.log('GET /api/profile hit');
+    const uid = await verifyToken(new NextRequest(req.url, req));
     if (!uid) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

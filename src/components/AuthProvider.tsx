@@ -64,7 +64,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const res = await fetch('/api/profile', {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            if (!res.ok) throw new Error(await res.text());
+            
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text.substring(0, 500)); // Limit error message size
+            }
+
+            const contentType = res.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await res.text();
+                console.error('Expected JSON but got:', text.substring(0, 100));
+                return;
+            }
+
             const data = await res.json();
 
             if (data.profile?.preferred_level) {

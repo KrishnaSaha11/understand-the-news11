@@ -9,7 +9,16 @@ function getAdminApp(): App {
 
     const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!;
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+    let privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+    if (privateKey) {
+        // Fix common PEM formatting issues from environment variables
+        privateKey = privateKey.trim();
+        if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+            privateKey = privateKey.substring(1, privateKey.length - 1);
+        }
+        privateKey = privateKey.replace(/\\n/g, '\n');
+    }
 
     if (clientEmail && privateKey) {
         // Service account credentials provided via env vars (preferred for production)

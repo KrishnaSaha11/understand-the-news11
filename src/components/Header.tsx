@@ -37,7 +37,17 @@ export default function Header() {
             const res = await fetch('/api/profile', {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            if (!res.ok) throw new Error(await res.text());
+            if (!res.ok) {
+                console.error('Error fetching topics:', await res.text());
+                return;
+            }
+
+            const contentType = res.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                console.error('Expected JSON from /api/profile but got:', await res.text());
+                return;
+            }
+
             const data = await res.json();
 
             if (data.preferences?.followed_topics) {
