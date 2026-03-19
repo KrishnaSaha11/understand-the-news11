@@ -11,6 +11,9 @@ import { useSearchParams } from 'next/navigation';
 import { QuizQuestion, QuizDifficulty } from '@/services/ai';
 import SpeechPlayer from '@/components/SpeechPlayer';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import OnboardingModal from '@/components/OnboardingModal';
+import DictionaryText from '@/components/DictionaryText';
 
 export default function Home() {
   return (
@@ -25,11 +28,14 @@ export default function Home() {
 }
 
 function HomeContent() {
-  const { user, level, setLevel, stats, updateStats } = useAuth();
+  const { user, level, setLevel, stats, updateStats, followedTopics, loading: authLoading } = useAuth();
   const [mounted, setMounted] = useState(false);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const category = searchParams.get('category') || 'general';
   const query = searchParams.get('q') || '';
+  
+  const showOnboarding = (!authLoading && user && followedTopics.length < 5) || searchParams.get('onboarding') === 'true';
 
   useEffect(() => {
     setMounted(true);
@@ -46,13 +52,14 @@ function HomeContent() {
   const [analysisResult, setAnalysisResult] = useState<{
     hook: string;
     what_happened: string;
-    why_it_happened: string;
+    backstory: string;
     why_it_matters: string;
-    simple_explanation: string;
-    quick_quiz: {
+    what_next: string;
+    tooltip_words: { word: string; definition: string; }[];
+    quiz: {
       question: string;
       options: string[];
-      correctIndex: number;
+      correct: string;
       explanation: string;
     };
   } | null>(null);
@@ -73,7 +80,9 @@ function HomeContent() {
     if (selectedOption !== null || !analysisResult) return;
 
     setSelectedOption(optionIndex);
-    const correct = optionIndex === analysisResult.quick_quiz.correctIndex;
+    // Convert index 0..3 to A..D
+    const selectedLetter = String.fromCharCode(65 + optionIndex);
+    const correct = selectedLetter === analysisResult.quiz.correct.charAt(0);
     setIsCorrect(correct);
 
     if (correct) setQuizScore(prev => prev + 1);
@@ -113,11 +122,17 @@ function HomeContent() {
 
   useEffect(() => {
     async function fetchNews() {
+      if (authLoading) return; // Wait until auth state and preferred topics are loaded
+      
       setLoading(true);
       try {
-        const url = query
-          ? `/api/news?q=${encodeURIComponent(query)}`
-          : `/api/news?category=${category}`;
+        let url = `/api/news?category=${category}`;
+        if (query) {
+           url = `/api/news?q=${encodeURIComponent(query)}`;
+        } else if (category === 'general' && followedTopics.length > 0) {
+           url = `/api/news?q=${encodeURIComponent(followedTopics.join(' OR '))}`;
+        }
+        
         const response = await fetch(url);
         const data = await response.json();
 
@@ -130,7 +145,7 @@ function HomeContent() {
       }
     }
     fetchNews();
-  }, [category, query]); // Refetch when category or query changes
+  }, [category, query, authLoading, followedTopics.join(',')]); // Refetch when dependencies change
 
   const trendingTopics = [
     { id: 'ai', label: 'Artificial Intelligence', icon: '🤖' },
@@ -168,7 +183,26 @@ function HomeContent() {
         throw new Error(data.error);
       }
 
-      setAnalysisResult(data);
+      // Handle legacy cached format
+      let mappedData = data;
+      if (!data.quiz && data.quick_quiz) {
+        mappedData = {
+          hook: data.hook,
+          what_happened: data.what_happened,
+          backstory: data.backstory || data.why_it_happened || "",
+          why_it_matters: data.why_it_matters,
+          what_next: data.what_next || data.simple_explanation || "",
+          tooltip_words: data.tooltip_words || (data.hard_words || []).map((hw: any) => ({ word: hw.word, definition: hw.meaning })),
+          quiz: {
+            question: data.quick_quiz.question,
+            options: data.quick_quiz.options || [],
+            correct: data.quick_quiz.correctIndex !== undefined ? ['A', 'B', 'C', 'D'][data.quick_quiz.correctIndex] || 'A' : 'A',
+            explanation: data.quick_quiz.explanation || ""
+          }
+        };
+      }
+
+      setAnalysisResult(mappedData);
 
       // Log read activity
       if (user) {
@@ -431,6 +465,8 @@ function HomeContent() {
               <span className="text-foreground/40 font-bold">Search results for:</span>
               <span className="text-primary">{query}</span>
             </>
+          ) : category === 'general' && followedTopics.length > 0 ? (
+            <>Your Curated Stories <span className="text-primary capitalize">For You</span></>
           ) : (
             <>Today's Top Stories <span className="text-primary capitalize">{category}</span></>
           )}
@@ -540,11 +576,25 @@ function HomeContent() {
                       <span>{selectedArticle.source.name}</span>
                       <span className="h-1 w-1 rounded-full bg-foreground/30" />
                       <span>{new Date(selectedArticle.publishedAt).toLocaleDateString()}</span>
+                      {analysisResult && (
+                        <>
+                          <span className="h-1 w-1 rounded-full bg-foreground/30" />
+                          <span className="text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                            {(() => {
+                                const textLengths = [analysisResult.hook, analysisResult.what_happened, analysisResult.backstory, analysisResult.why_it_matters, analysisResult.what_next].join(' ').split(' ').length;
+                                const readTimeSeconds = Math.round((textLengths / 200) * 60);
+                                if (readTimeSeconds <= 45) return "45 sec read";
+                                if (readTimeSeconds < 90) return "1 min read";
+                                return `${Math.round(readTimeSeconds / 60)} min read`;
+                            })()}
+                          </span>
+                        </>
+                      )}
                     </div>
                     {analysisResult && (
                       <div className="mt-4">
                         <SpeechPlayer
-                          text={`${analysisResult.hook}. ${analysisResult.what_happened}. ${analysisResult.why_it_happened}. ${analysisResult.why_it_matters}. ${analysisResult.simple_explanation}.`}
+                          text={`${analysisResult.hook}. ${analysisResult.what_happened}. ${analysisResult.backstory}. ${analysisResult.why_it_matters}. ${analysisResult.what_next}.`}
                           currentLanguage={selectedLanguage}
                           onLanguageChange={handleLanguageChange}
                         />
@@ -569,65 +619,60 @@ function HomeContent() {
                       <div className="grid gap-6 sm:gap-8">
                         {/* Hook */}
                         <section id="hook" className="reading-section animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
-                          <div className="rounded-2xl border-l-[4px] border-[#818CF8] bg-[#EEF2FF] dark:bg-[#1E1B4B] p-6 sm:p-8 shadow-sm">
+                          <div className="rounded-2xl border-l-[4px] border-[#818CF8] bg-[rgba(129,140,248,0.05)] p-6 sm:p-8 shadow-sm">
                             <div className="flex items-center space-x-3 mb-4">
-                              <span className="text-xl sm:text-2xl">🎬</span>
-                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#A5B4FC] uppercase tracking-tight">1. The Hook</h3>
+                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#A5B4FC] tracking-tight">🎬 THE HOOK</h3>
                             </div>
-                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#A5B4FC] opacity-90 leading-relaxed">
-                              <p>{analysisResult.hook}</p>
+                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#A5B4FC] opacity-90">
+                              <DictionaryText text={analysisResult.hook} tooltipWords={analysisResult.tooltip_words} />
                             </div>
                           </div>
                         </section>
 
                         {/* What Happened */}
                         <section id="what" className="reading-section animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                          <div className="rounded-2xl border-l-[4px] border-[#22C55E] bg-[#F0FDF4] dark:bg-[#1C2B1A] p-6 sm:p-8 shadow-sm">
+                          <div className="rounded-2xl border-l-[4px] border-[#34D399] bg-[rgba(52,211,153,0.05)] p-6 sm:p-8 shadow-sm">
                             <div className="flex items-center space-x-3 mb-4">
-                              <span className="text-xl sm:text-2xl">🧠</span>
-                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#86EFAC] uppercase tracking-tight">2. What Happened</h3>
+                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#86EFAC] tracking-tight">🧠 WHAT HAPPENED</h3>
                             </div>
-                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#86EFAC] opacity-90 leading-relaxed">
-                              <p>{analysisResult.what_happened}</p>
+                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#86EFAC] opacity-90">
+                              <DictionaryText text={analysisResult.what_happened} tooltipWords={analysisResult.tooltip_words} />
                             </div>
                           </div>
                         </section>
 
-                        {/* Why It Happened */}
+                        {/* Backstory */}
                         <section id="why-happened" className="reading-section animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                          <div className="rounded-2xl border-l-[4px] border-[#C4B5FD] bg-[#F5F3FF] dark:bg-[#1C1A2B] p-6 sm:p-8 shadow-sm">
+                          <div className="rounded-2xl border-l-[4px] border-[#FBBF24] bg-[rgba(251,191,36,0.05)] p-6 sm:p-8 shadow-sm">
                             <div className="flex items-center space-x-3 mb-4">
-                              <span className="text-xl sm:text-2xl">⚡</span>
-                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#C4B5FD] uppercase tracking-tight">3. Why It Happened</h3>
+                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#FBBF24] tracking-tight">🕰️ THE BACKSTORY</h3>
                             </div>
-                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#C4B5FD] opacity-90 leading-relaxed">
-                              <p>{analysisResult.why_it_happened}</p>
+                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#FBBF24] opacity-90">
+                              <DictionaryText text={analysisResult.backstory} tooltipWords={analysisResult.tooltip_words} />
                             </div>
                           </div>
                         </section>
 
                         {/* Why It Matters */}
                         <section id="matters" className="reading-section animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                          <div className="rounded-2xl border-l-[4px] border-[#6EE7B7] bg-[#ECFDF5] dark:bg-[#1A2B1A] p-6 sm:p-8 shadow-sm">
+                          <div className="rounded-2xl border-l-[4px] border-[#60A5FA] bg-[rgba(96,165,250,0.05)] p-6 sm:p-8 shadow-sm">
                             <div className="flex items-center space-x-3 mb-4">
-                              <span className="text-xl sm:text-2xl">🌍</span>
-                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#6EE7B7] uppercase tracking-tight">4. Why It Matters</h3>
+                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#60A5FA] tracking-tight">🌍 WHY THIS MATTERS TO YOU</h3>
                             </div>
-                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#6EE7B7] opacity-90 leading-relaxed">
-                              <p>{analysisResult.why_it_matters}</p>
+                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#60A5FA] opacity-90">
+                              <DictionaryText text={analysisResult.why_it_matters} tooltipWords={analysisResult.tooltip_words} />
                             </div>
                           </div>
                         </section>
 
-                        {/* Simple Explanation */}
+                        {/* What Next */}
                         <section id="simple" className="reading-section animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
-                          <div className="rounded-2xl border-l-[4px] border-[#FCA5A5] bg-[#FEF2F2] dark:bg-[#2B1A1A] p-6 sm:p-8 shadow-sm">
+                          <div className="rounded-2xl border-l-[4px] border-[#F472B6] bg-[rgba(244,114,182,0.05)] p-6 sm:p-8 shadow-sm">
                             <div className="flex items-center space-x-3 mb-4">
-                              <span className="text-xl sm:text-2xl">🧒</span>
-                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#FCA5A5] uppercase tracking-tight">5. Simple Explanation</h3>
+                              <h3 className="text-base sm:text-lg font-black text-[#1E293B] dark:text-[#F472B6] tracking-tight">🔭 WHAT HAPPENS NEXT</h3>
                             </div>
-                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#FCA5A5] opacity-90 leading-relaxed">
-                              <p>{analysisResult.simple_explanation}</p>
+                            <div className="text-lg sm:text-xl font-bold text-[#1E293B] dark:text-[#F472B6] opacity-90">
+                              <DictionaryText text={analysisResult.what_next} tooltipWords={analysisResult.tooltip_words} />
                             </div>
                           </div>
                         </section>
@@ -636,19 +681,19 @@ function HomeContent() {
                         <section id="quiz" className="reading-section animate-fade-in-up pt-8 border-t" style={{ animationDelay: '0.4s' }}>
                           <div className="rounded-3xl border-l-[4px] border-[#93C5FD] bg-[#EFF6FF] dark:bg-[#1A1F2B] p-6 sm:p-8 shadow-xl">
                             <div className="flex items-center space-x-3 mb-6">
-                              <span className="text-xl sm:text-2xl">🧠</span>
-                              <h3 className="text-lg sm:text-xl font-black text-[#1E293B] dark:text-[#93C5FD] uppercase tracking-tight">Quick Quiz</h3>
+                              <h3 className="text-lg sm:text-xl font-black text-[#1E293B] dark:text-[#93C5FD] tracking-tight">⚡ QUICK QUIZ</h3>
                             </div>
 
                             <div className="space-y-4 sm:space-y-6">
                               <h4 className="text-xl sm:text-2xl font-black leading-tight">
-                                {analysisResult.quick_quiz.question}
+                                {analysisResult.quiz.question}
                               </h4>
 
                               <div className="grid gap-2 sm:gap-3">
-                                {analysisResult.quick_quiz.options.map((option, idx) => {
+                                {analysisResult.quiz.options.map((option, idx) => {
                                   const isSelected = selectedOption === idx;
-                                  const isCorrectOption = idx === analysisResult.quick_quiz.correctIndex;
+                                  const selectedLetter = String.fromCharCode(65 + idx);
+                                  const isCorrectOption = selectedLetter === analysisResult.quiz.correct.charAt(0);
 
                                   let appearance = "border-secondary bg-background hover:border-primary/20";
                                   if (selectedOption !== null) {
@@ -671,6 +716,20 @@ function HomeContent() {
                                   );
                                 })}
                               </div>
+
+                              {selectedOption !== null && (
+                                <div className={`p-4 sm:p-5 rounded-2xl border-2 animate-in fade-in slide-in-from-top-4 mt-4 ${
+                                  isCorrect ? 'bg-emerald-50/50 border-emerald-200 text-emerald-900' : 'bg-red-50/50 border-red-200 text-red-900'
+                                }`}>
+                                  <div className="flex items-start gap-3">
+                                    {isCorrect ? <CheckCircle2 className="h-6 w-6 text-emerald-600 flex-shrink-0" /> : <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />}
+                                    <div>
+                                      <h4 className="font-black text-lg mb-1">{isCorrect ? 'Correct!' : 'Not quite!'}</h4>
+                                      <p className="font-medium text-sm sm:text-base opacity-90">{analysisResult.quiz.explanation}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
 
                               {selectedOption !== null && (
                                 <div className="mt-8 sm:mt-10 pt-8 sm:pt-10 border-t border-primary/10 animate-fade-in">
@@ -749,6 +808,11 @@ function HomeContent() {
             <span>{toastMessage}</span>
           </div>
         </div>
+      )}
+
+      {/* Onboarding Modal */}
+      {mounted && showOnboarding && (
+        <OnboardingModal onComplete={() => router.replace('/')} />
       )}
     </div>
   );

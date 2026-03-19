@@ -48,7 +48,12 @@ export default function NewsCard({ article, onAnalyze }: NewsCardProps) {
                 </div>
                 <div className="mt-4 sm:mt-6">
                     <button
-                        onClick={() => onAnalyze(article)}
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onAnalyze(article);
+                        }}
                         className="w-full rounded-full bg-[#F59E0B] px-4 py-2 text-sm font-semibold text-[#000000] transition-all hover:bg-[#D97706] active:scale-95 shadow-lg"
                     >
                         🧠 Understand in 30 Seconds

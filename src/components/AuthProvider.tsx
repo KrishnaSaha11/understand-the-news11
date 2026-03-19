@@ -23,6 +23,8 @@ interface AuthContextType {
     setLevel: (level: TeacherLevel) => Promise<void>;
     updateStats: () => Promise<void>;
     signOut: () => Promise<void>;
+    followedTopics: string[];
+    setFollowedTopics: (topics: string[]) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -41,6 +43,8 @@ const AuthContext = createContext<AuthContextType>({
     setLevel: async () => { },
     updateStats: async () => { },
     signOut: async () => { },
+    followedTopics: [],
+    setFollowedTopics: async () => { },
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -56,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         knowledgePoints: 0,
         articlesCompleted: []
     });
+    const [followedTopics, setFollowedTopicsState] = useState<string[]>([]);
 
     const fetchProfile = async () => {
         if (!auth.currentUser) return;
@@ -93,6 +98,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     articlesCompleted: data.profile.articlesCompleted || []
                 });
             }
+            if (data.preferences?.followed_topics) {
+                setFollowedTopicsState(data.preferences.followed_topics);
+            }
         } catch (err) {
             console.error('fetchProfile error:', err);
         }
@@ -118,6 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     knowledgePoints: 0,
                     articlesCompleted: []
                 });
+                setFollowedTopicsState([]);
             }
             setLoading(false);
         }, (err) => {
@@ -151,6 +160,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const setFollowedTopics = async (topics: string[]) => {
+        setFollowedTopicsState(topics);
+        if (user) {
+            try {
+                const token = await auth.currentUser?.getIdToken();
+                if (!token) return;
+
+                await fetch('/api/profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        type: 'preferences',
+                        data: { followed_topics: topics }
+                    })
+                });
+            } catch (err) {
+                console.error('setFollowedTopics error:', err);
+            }
+        }
+    };
+
     const signOut = async () => {
         try {
             await firebaseSignOut(auth);
@@ -166,10 +199,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             knowledgePoints: 0,
             articlesCompleted: []
         });
+        setFollowedTopicsState([]);
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, level, stats, setLevel, updateStats, signOut }}>
+        <AuthContext.Provider value={{ user, loading, level, stats, setLevel, updateStats, signOut, followedTopics, setFollowedTopics }}>
             {children}
         </AuthContext.Provider>
     );

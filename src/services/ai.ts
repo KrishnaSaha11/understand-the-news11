@@ -1,13 +1,14 @@
 export interface GroqAnalysis {
     hook: string;
     what_happened: string;
-    why_it_happened: string;
+    backstory: string;
     why_it_matters: string;
-    simple_explanation: string;
-    quick_quiz: {
+    what_next: string;
+    tooltip_words: { word: string; definition: string; }[];
+    quiz: {
         question: string;
         options: string[];
-        correctIndex: number;
+        correct: string;
         explanation: string;
     };
 }
@@ -27,46 +28,105 @@ export async function analyzeWithGroq(
         throw new Error("GROQ_API_KEY is not configured");
     }
 
-    const prompt = `You are an expert news explainer. Your job is to convert complex news into clear, engaging explanations that anyone can understand.
+    const prompt = `You are a world-class news explainer. Your job is to make any news story 
+feel like it was explained by a brilliant friend who reads everything — 
+someone who gives you the real story, the context behind it, and why it 
+matters, all in plain conversational language. No jargon. No fluff. 
+No unnecessary words.
 
-GOAL:
-Help readers quickly understand the news while still giving enough context to feel fully informed.
-Maximize the number of stories the user can consume by being punchy and powerful.
+Your explanation must follow this EXACT structure. Each section must feel 
+alive, not robotic. Write like a human, not a summarizer.
 
-LANGUAGE RULES:
-* Use very simple and natural English.
-* Avoid jargon and complicated words.
-* Write like a smart teacher explaining the news to a curious student.
-* Make the explanation interesting and easy to read.
+---
 
-LENGTH RULES:
-* Each section MUST be meaningful and detailed, containing MINIMUM 40 and MAXIMUM 50 words.
-* Total explanation should be around 220–250 words.
-* Provide full context and deep meaning in every section. If a section is too short, expand on the context.
-* Use short but descriptive sentences.
-* Avoid long paragraphs.
+SECTION 1 — THE HOOK (2 sentences max)
+Open with one punchy sentence that makes the reader lean forward. 
+Make them feel something — surprise, curiosity, concern, or excitement. 
+Do NOT start with the company name or "today". Start with the consequence 
+or the surprise. Example: "Something just shifted in the crypto world — 
+and if you follow digital money, this one matters."
 
-RESOND IN: ${language}
+---
+
+SECTION 2 — WHAT HAPPENED (3-4 sentences)
+Tell the story simply. Write it like you are texting a smart friend 
+who has zero background on this topic. Use everyday words. If a 
+technical term is absolutely necessary, put it in [brackets] so the 
+frontend can show a tooltip definition on hover.
+No bullet points. Pure flowing sentences.
+
+---
+
+SECTION 3 — THE BACKSTORY (3-4 sentences)
+This is the most important section. Give the reader the context they 
+need to actually understand WHY this news exists. What happened before? 
+What is the bigger trend? What problem was building up that led to this 
+moment? Assume the reader is intelligent but new to this topic. 
+A reader should finish this section feeling like they now understand 
+the full picture, not just today's headline.
+
+---
+
+SECTION 4 — WHY THIS MATTERS TO YOU (2-3 sentences)
+Make it personal and real. How does this affect normal people — their 
+money, their job, their daily life, their future? Skip abstract 
+statements like "this is important for the industry." Be specific. 
+If it does not affect normal people directly, say who it affects 
+and why that ripples outward.
+
+---
+
+SECTION 5 — WHAT HAPPENS NEXT (2-3 sentences)
+What should the reader watch for? What are the possible outcomes — 
+good or bad? Keep it grounded in reality, not speculation. 
+End with one sentence that makes the reader feel informed and ahead 
+of others who just saw the headline.
+
+---
+
+QUICK QUIZ (1 question, 4 options)
+Write one question that tests genuine understanding of the story — 
+not a trivia fact. The correct answer should require the reader to 
+have understood the WHY of the story, not just memorized a name or date.
+Make wrong answers plausible, not obviously silly.
+
+---
+
+HARD RULES:
+- Total word count: 180 to 230 words across all sections combined
+- Zero use of: "In conclusion", "It is important to note", "As we know", "This is a reminder that", "Delve", "Navigate", "Landscape"
+- Never start any sentence with "This"
+- No bullet points anywhere except the quiz options
+- Every section must connect to the next — it should read as one flowing story broken into clear chapters, not five separate summaries
+- If a word is technical or uncommon, wrap it like this: [word|definition] so the frontend tooltip system can parse it
+  Example: [blockchain|a digital record book that nobody can secretly edit]
+- The tone is: smart friend at a coffee shop, not news anchor, not professor, not robot
+- If the news involves money amounts, always give a real-world comparison.
+  Example: instead of "$2 billion", write "$2 billion — roughly what India spends on space research in a year"
+- First sentence of Section 1 must create an emotion. Test it: would a tired person at 11pm keep reading after this sentence? If no, rewrite it.
+- RESPOND IN: ${language}
 
 Article Title: ${title}
 Article Content: ${articleContent}
 
-STRICT STRUCTURE (Follow exactly and return ONLY JSON):
-{
-  "hook": "Write a powerful introduction that captures the reader's attention. YOU MUST USE AT LEAST 40 WORDS. (40-50 words)",
-  "what_happened": "Explain the situation in detail. What are the key facts? YOU MUST USE AT LEAST 40 WORDS. (40-50 words)",
-  "why_it_happened": "Explain the deep reasons, history, or causes. Provide full meaning. YOU MUST USE AT LEAST 40 WORDS. (40-50 words)",
-  "why_it_matters": "Explain the impact on society or individuals. Why should the reader care? YOU MUST USE AT LEAST 40 WORDS. (40-50 words)",
-  "simple_explanation": "Provide a detailed real-life comparison or analogy to make it crystal clear. YOU MUST USE AT LEAST 40 WORDS. (40-50 words)",
-  "quick_quiz": {
-    "question": "One multiple-choice question to test understanding.",
-    "options": ["A) ...", "B) ...", "C) ...", "D) ..."],
-    "correctIndex": 0,
-    "explanation": "Why the answer is correct."
-  }
-}
+OUTPUT FORMAT — return valid JSON exactly like this:
 
-TONE: Friendly, clear, and engaging. Not robotic.`;
+{
+  "hook": "string",
+  "what_happened": "string",
+  "backstory": "string",
+  "why_it_matters": "string",
+  "what_next": "string",
+  "tooltip_words": [
+    { "word": "string", "definition": "string" }
+  ],
+  "quiz": {
+    "question": "string",
+    "options": ["A) string", "B) string", "C) string", "D) string"],
+    "correct": "A/B/C/D",
+    "explanation": "string — one sentence explaining why this answer is correct and what it means"
+  }
+}`;
 
     const fetchWithRetry = async (url: string, options: any, retries = 2) => {
         for (let i = 0; i < retries; i++) {

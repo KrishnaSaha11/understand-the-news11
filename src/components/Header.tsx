@@ -9,14 +9,13 @@ import { useTheme } from './ThemeProvider';
 import { auth } from '@/lib/firebase';
 
 export default function Header() {
-    const { user, signOut, stats } = useAuth();
+    const { user, signOut, stats, followedTopics } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [showCategories, setShowCategories] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
-    const [followedTopics, setFollowedTopics] = useState<string[]>([]);
     const searchParams = useSearchParams();
     const router = useRouter();
     const currentCategory = searchParams.get('category') || 'general';
@@ -24,66 +23,7 @@ export default function Header() {
 
     useEffect(() => {
         setMounted(true);
-        if (user) {
-            fetchFollowedTopics(user.uid);
-        }
-    }, [user]);
-
-    const fetchFollowedTopics = async (uid: string) => {
-        try {
-            const token = await auth.currentUser?.getIdToken();
-            if (!token) return;
-
-            const res = await fetch('/api/profile', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (!res.ok) {
-                console.error('Error fetching topics:', await res.text());
-                return;
-            }
-
-            const contentType = res.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                console.error('Expected JSON from /api/profile but got:', await res.text());
-                return;
-            }
-
-            const data = await res.json();
-
-            if (data.preferences?.followed_topics) {
-                setFollowedTopics(data.preferences.followed_topics);
-            }
-        } catch (err) {
-            console.error('Error fetching topics:', err);
-        }
-    };
-
-    const toggleFollowTopic = async (topic: string) => {
-        if (!user) return;
-        const newTopics = followedTopics.includes(topic)
-            ? followedTopics.filter(t => t !== topic)
-            : [...followedTopics, topic];
-
-        setFollowedTopics(newTopics);
-        try {
-            const token = await auth.currentUser?.getIdToken();
-            if (!token) return;
-
-            await fetch('/api/profile', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    type: 'preferences',
-                    data: { followed_topics: newTopics }
-                })
-            });
-        } catch (err) {
-            console.error('Error saving topics:', err);
-        }
-    };
+    }, []);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -221,6 +161,13 @@ export default function Header() {
                                 </div>
                             )}
                             <Link
+                                href="/?onboarding=true"
+                                className="flex items-center space-x-2 rounded-xl bg-orange-500/10 text-orange-600 px-3 sm:px-4 py-2 text-sm font-black transition-all hover:bg-orange-500 hover:text-white"
+                            >
+                                <Star className="h-4 w-4" />
+                                <span className="hidden sm:inline">Interests</span>
+                            </Link>
+                            <Link
                                 href="/library"
                                 className="flex items-center space-x-2 rounded-xl bg-secondary/50 px-3 sm:px-4 py-2 text-sm font-black transition-all hover:bg-secondary"
                             >
@@ -353,22 +300,35 @@ export default function Header() {
                                 ))}
                             </nav>
 
-                            {user && followedTopics.length > 0 && (
-                                <div className="space-y-2">
-                                    <p className="text-xs font-black uppercase tracking-widest text-foreground/40 px-3 mb-2">Your Topics</p>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {followedTopics.map((topic) => (
-                                            <Link
-                                                key={topic}
-                                                href={`/?q=${encodeURIComponent(topic)}`}
-                                                onClick={() => setIsMobileMenuOpen(false)}
-                                                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/50 text-xs font-bold hover:bg-secondary transition-all"
-                                            >
-                                                <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                                                <span className="truncate">{topic}</span>
-                                            </Link>
-                                        ))}
-                                    </div>
+                            {user && (
+                                <div className="space-y-4 pt-4 border-t border-secondary">
+                                    <Link
+                                        href="/?onboarding=true"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-orange-500/10 text-orange-600 font-black hover:bg-orange-500 hover:text-white transition-all shadow-sm"
+                                    >
+                                        <Star className="h-5 w-5" />
+                                        <span>Update Interests</span>
+                                    </Link>
+
+                                    {followedTopics.length > 0 && (
+                                        <div className="space-y-2">
+                                            <p className="text-xs font-black uppercase tracking-widest text-foreground/40 px-3 mb-2">Your Topics</p>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {followedTopics.map((topic) => (
+                                                    <Link
+                                                        key={topic}
+                                                        href={`/?q=${encodeURIComponent(topic)}`}
+                                                        onClick={() => setIsMobileMenuOpen(false)}
+                                                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/50 text-xs font-bold hover:bg-secondary transition-all"
+                                                    >
+                                                        <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                                                        <span className="truncate">{topic}</span>
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
