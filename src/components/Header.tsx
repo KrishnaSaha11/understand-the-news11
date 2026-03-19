@@ -127,7 +127,7 @@ export default function Header() {
                     <button
                         onClick={toggleTheme}
                         className="p-2 rounded-xl bg-secondary/50 hover:bg-secondary transition-all text-foreground/80 hover:text-primary border border-transparent hover:border-blue-100"
-                        title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+                        title={mounted ? (theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode') : 'Switch Theme'}
                     >
                         {mounted && theme === 'dark' ? (
                             <Sun className="h-5 w-5" />

@@ -208,5 +208,10 @@ export async function generateQuizWithGroq(
     difficulty: QuizDifficulty = 'medium'
 ): Promise<QuizQuestion[]> {
     // This function is kept for backward compatibility but will likely be removed
-    return [analysis.quick_quiz];
+    return [{
+        question: analysis.quiz.question,
+        options: analysis.quiz.options,
+        correctIndex: analysis.quiz.correct ? analysis.quiz.correct.toUpperCase().charCodeAt(0) - 65 : 0,
+        explanation: analysis.quiz.explanation
+    }];
 }
